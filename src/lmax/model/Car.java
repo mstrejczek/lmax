@@ -1,16 +1,21 @@
 package lmax.model;
 
-public class Car {
+public interface Car {
 
-    private final long startTime = System.currentTimeMillis();
-    private boolean chassis = false;
-    private boolean rearAxle = false;
-    private boolean frontLeftSuspension = false;
-    private boolean frontRightSuspension = false;
-    private boolean frontLeftWheel = false;
-    private boolean frontRightWheel = false;
-    private boolean rearLeftWheel = false;
-    private boolean rearRightWheel = false;
-    private boolean body = false;
+    boolean isReady();
+
+    void installChassis();
+
+    String getFinishMsg(long initialTime);
+
+    void installRearAxle();
+
+    void installFrontLeftSuspension();
+
+    void installFrontRightSuspension();
+
+    void installWheel(boolean front, boolean left);
+
+    void installBody();
 
 }

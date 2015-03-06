@@ -2,45 +2,46 @@ package lmax.model;
 
 import com.sun.xml.internal.txw2.IllegalSignatureException;
 
-public class LmaxCar implements Car {
+public class StandardCar implements Car {
 
     private final long startTime = System.currentTimeMillis();
     private final long serialNumber;
-    private PaddedBoolean chassis = new PaddedBoolean();
-    private PaddedBoolean rearAxle = new PaddedBoolean();
-    private PaddedBoolean frontLeftSuspension = new PaddedBoolean();
-    private PaddedBoolean frontRightSuspension = new PaddedBoolean();
-    private PaddedBoolean frontLeftWheel = new PaddedBoolean();
-    private PaddedBoolean frontRightWheel = new PaddedBoolean();
-    private PaddedBoolean rearLeftWheel = new PaddedBoolean();
-    private PaddedBoolean rearRightWheel = new PaddedBoolean();
-    private PaddedBoolean body = new PaddedBoolean();
+    private boolean chassis = false;
+    private boolean rearAxle = false;
+    private boolean frontLeftSuspension = false;
+    private boolean frontRightSuspension = false;
+    private boolean frontLeftWheel = false;
+    private boolean frontRightWheel = false;
+    private boolean rearLeftWheel = false;
+    private boolean rearRightWheel = false;
+    private boolean body = false;
 
-    public LmaxCar(long serialNumber) {
+    public StandardCar(long serialNumber) {
 	this.serialNumber = serialNumber;
     }
 
     @Override
     public boolean isReady() {
-	return chassis.isValue()
-		&& rearAxle.isValue()
-		&& frontLeftSuspension.isValue()
-		&& frontRightSuspension.isValue()
-		&& frontLeftWheel.isValue()
-		&& frontRightWheel.isValue()
-		&& rearLeftWheel.isValue()
-		&& rearRightWheel.isValue()
-		&& body.isValue();
+	return chassis
+		&& rearAxle
+		&& frontLeftSuspension
+		&& frontRightSuspension
+		&& frontLeftWheel
+		&& frontRightWheel
+		&& rearLeftWheel
+		&& rearRightWheel
+		&& body;
     }
 
+    @Override
     public void installChassis() {
-	chassis.setTrue();
+	chassis = true;
     }
 
     @Override
     public void installRearAxle() {
-	if (chassis.isValue()) {
-	    rearAxle.setTrue();
+	if (chassis) {
+	    rearAxle = true;
 	} else {
 	    throw new IllegalSignatureException("chassis not ready");
 	}
@@ -48,8 +49,8 @@ public class LmaxCar implements Car {
 
     @Override
     public void installFrontLeftSuspension() {
-	if (chassis.isValue()) {
-	    frontLeftSuspension.setTrue();
+	if (chassis) {
+	    frontLeftSuspension = true;
 	} else {
 	    throw new IllegalSignatureException("chassis not ready");
 	}
@@ -57,8 +58,8 @@ public class LmaxCar implements Car {
 
     @Override
     public void installFrontRightSuspension() {
-	if (chassis.isValue()) {
-	    frontRightSuspension.setTrue();
+	if (chassis) {
+	    frontRightSuspension = true;
 	} else {
 	    throw new IllegalSignatureException("chassis not ready");
 	}
@@ -68,24 +69,24 @@ public class LmaxCar implements Car {
     public void installWheel(boolean front, boolean left) {
 	if (front) {
 	    if (left) {
-		if (frontLeftSuspension.isValue()) {
-		    frontLeftWheel.setTrue();
+		if (frontLeftSuspension) {
+		    frontLeftWheel = true;
 		} else {
 		    throw new IllegalSignatureException("frontLeftSuspension not ready");
 		}
 	    } else {
-		if (frontRightSuspension.isValue()) {
-		    frontRightWheel.setTrue();
+		if (frontRightSuspension) {
+		    frontRightWheel = true;
 		} else {
 		    throw new IllegalSignatureException("rightLeftSuspension not ready");
 		}
 	    }
 	} else {
-	    if (rearAxle.isValue()) {
+	    if (rearAxle) {
 		if (left) {
-		    rearLeftWheel.setTrue();
+		    rearLeftWheel = true;
 		} else {
-		    rearRightWheel.setTrue();
+		    rearRightWheel = true;
 		}
 	    } else {
 		throw new IllegalSignatureException("rearAxle not ready");
@@ -95,11 +96,11 @@ public class LmaxCar implements Car {
 
     @Override
     public void installBody() {
-	if (frontLeftWheel.isValue()
-		&& frontRightWheel.isValue()
-		&& rearLeftWheel.isValue()
-		&& rearRightWheel.isValue()) {
-	    body.setTrue();
+	if (frontLeftWheel
+		&& frontRightWheel
+		&& rearLeftWheel
+		&& rearRightWheel) {
+	    body = true;
 	} else {
 	    throw new IllegalSignatureException("wheels not ready");
 	}
