@@ -15,84 +15,88 @@ import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
 
 public class LmaxMainMulti {
-    public static void main(String[] args) throws Exception {
-	ResourceFactory resourceFactory = new ResourceFactory(true);
+	public static void main(String[] args) throws Exception {
+		ResourceFactory resourceFactory = new ResourceFactory(false);
 
-	Executor executor = Executors.newCachedThreadPool();
+		Executor executor = Executors.newCachedThreadPool();
 
-	int bufferSize = 16;
+		int bufferSize = 16;
 
-	Disruptor<CarEvent> disruptor = new Disruptor<>(
-		CarEvent::new,
-		bufferSize,
-		executor,
-		ProducerType.SINGLE,
-		new YieldingWaitStrategy()
-		);
+		Disruptor<CarEvent> disruptor = new Disruptor<>(CarEvent::new,
+				bufferSize, executor, ProducerType.SINGLE,
+				new YieldingWaitStrategy());
 
-	Processor chassisProcessor = new Processor(resourceFactory, 50, ((Car car) -> car.installChassis()));
+		Processor chassisProcessor = new Processor(resourceFactory, 50, ((
+				Car car) -> car.installChassis()));
 
-	// WorkHandler<CarEvent>[] chassisPool = new WorkHandler[3];
-	// chassisPool[0] = new Processor(resourceFactory, 50, ((Car car) ->
-	// car.installChassis()));
-	// chassisPool[1] = new Processor(resourceFactory, 50, ((Car car) ->
-	// car.installChassis()));
-	// chassisPool[2] = new Processor(resourceFactory, 50, ((Car car) ->
-	// car.installChassis()));
+		// WorkHandler<CarEvent>[] chassisPool = new WorkHandler[3];
+		// chassisPool[0] = new Processor(resourceFactory, 50, ((Car car) ->
+		// car.installChassis()));
+		// chassisPool[1] = new Processor(resourceFactory, 50, ((Car car) ->
+		// car.installChassis()));
+		// chassisPool[2] = new Processor(resourceFactory, 50, ((Car car) ->
+		// car.installChassis()));
 
-	Processor rearAxleProcessor = new Processor(resourceFactory, 10, ((Car car) -> car.installRearAxle()));
+		Processor rearAxleProcessor = new Processor(resourceFactory, 10, ((
+				Car car) -> car.installRearAxle()));
 
-	Processor frontLeftSuspensionProcessor = new Processor(resourceFactory, 10,
-		((Car car) -> car.installFrontLeftSuspension()));
+		Processor frontLeftSuspensionProcessor = new Processor(resourceFactory,
+				10, ((Car car) -> car.installFrontLeftSuspension()));
 
-	Processor frontRightSuspensionProcessor = new Processor(resourceFactory, 10,
-		((Car car) -> car.installFrontRightSuspension()));
+		Processor frontRightSuspensionProcessor = new Processor(
+				resourceFactory, 10,
+				((Car car) -> car.installFrontRightSuspension()));
 
-	Processor frontRightWheelProcessor = new Processor(resourceFactory, 10,
-		((Car car) -> car.installWheel(true, false)));
+		Processor frontRightWheelProcessor = new Processor(resourceFactory, 10,
+				((Car car) -> car.installWheel(true, false)));
 
-	Processor frontLeftWheelProcessor = new Processor(resourceFactory, 10,
-		((Car car) -> car.installWheel(true, true)));
+		Processor frontLeftWheelProcessor = new Processor(resourceFactory, 10,
+				((Car car) -> car.installWheel(true, true)));
 
-	Processor rearRightWheelProcessor = new Processor(resourceFactory, 10,
-		((Car car) -> car.installWheel(false, false)));
+		Processor rearRightWheelProcessor = new Processor(resourceFactory, 10,
+				((Car car) -> car.installWheel(false, false)));
 
-	Processor rearLeftWheelProcessor = new Processor(resourceFactory, 10,
-		((Car car) -> car.installWheel(false, true)));
+		Processor rearLeftWheelProcessor = new Processor(resourceFactory, 10,
+				((Car car) -> car.installWheel(false, true)));
 
-	Processor bodyProcessor = new Processor(resourceFactory, 10,
-		((Car car) -> car.installBody()));
+		Processor bodyProcessor = new Processor(resourceFactory, 10,
+				((Car car) -> car.installBody()));
 
-	long initialTime = System.currentTimeMillis();
+		long initialTime = System.currentTimeMillis();
 
-	Processor finishProcessor =
-		new Processor(resourceFactory, 0,
-			((Car car) -> System.out.println(car.getFinishMsg(initialTime))));
+		Processor finishProcessor = new Processor(
+				resourceFactory,
+				0,
+				((Car car) -> System.out.println(car.getFinishMsg(initialTime))));
 
-	// disruptor.handleEventsWithWorkerPool(chassisPool)
-	// .then(rearAxleProcessor, frontLeftSuspensionProcessor,
-	// frontRightSuspensionProcessor);
+		// disruptor.handleEventsWithWorkerPool(chassisPool)
+		// .then(rearAxleProcessor, frontLeftSuspensionProcessor,
+		// frontRightSuspensionProcessor);
 
-	disruptor.handleEventsWith(chassisProcessor)
-		.then(rearAxleProcessor, frontLeftSuspensionProcessor,
-			frontRightSuspensionProcessor);
+		disruptor.handleEventsWith(chassisProcessor).then(rearAxleProcessor,
+				frontLeftSuspensionProcessor, frontRightSuspensionProcessor);
 
-	disruptor.after(rearAxleProcessor).handleEventsWith(rearRightWheelProcessor, rearLeftWheelProcessor);
+		disruptor.after(rearAxleProcessor).handleEventsWith(
+				rearRightWheelProcessor, rearLeftWheelProcessor);
 
-	disruptor.after(frontLeftSuspensionProcessor).handleEventsWith(frontLeftWheelProcessor);
-	disruptor.after(frontRightSuspensionProcessor).handleEventsWith(frontRightWheelProcessor);
+		disruptor.after(frontLeftSuspensionProcessor).handleEventsWith(
+				frontLeftWheelProcessor);
+		disruptor.after(frontRightSuspensionProcessor).handleEventsWith(
+				frontRightWheelProcessor);
 
-	disruptor.after(rearRightWheelProcessor,
-		rearLeftWheelProcessor, frontLeftWheelProcessor, frontRightWheelProcessor)
-		.handleEventsWith(bodyProcessor).then(finishProcessor);
+		disruptor
+				.after(rearRightWheelProcessor, rearLeftWheelProcessor,
+						frontLeftWheelProcessor, frontRightWheelProcessor)
+				.handleEventsWith(bodyProcessor).then(finishProcessor);
 
-	disruptor.start();
+		disruptor.start();
 
-	RingBuffer<CarEvent> ringBuffer = disruptor.getRingBuffer();
+		RingBuffer<CarEvent> ringBuffer = disruptor.getRingBuffer();
 
-	for (long l = 0; l < 1000; l++) {
-	    ringBuffer.publishEvent((event, sequence, value) -> event.setCar(new LmaxCar(sequence)));
+		for (long l = 0; l < 1000; l++) {
+			ringBuffer.publishEvent((event, sequence, value) -> event
+					.setCar(new LmaxCar(sequence)));
+		}
+
 	}
-
-    }
 }

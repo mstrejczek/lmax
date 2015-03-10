@@ -2,6 +2,6 @@ package lmax.resource;
 
 public interface Resource {
 
-    void useResource(long time);
+    boolean useResource(long time);
 
 }
